@@ -1,0 +1,50 @@
+/* steam-auth.css – Shared Steam-style for Login & Register */
+body {
+    background: linear-gradient(135deg, #1b2838 0%, #0f1419 100%);
+    font-family: 'Roboto', sans-serif;
+    min-height: 100vh;
+}
+
+.steam-font {
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+}
+
+.glow-input:focus {
+    box-shadow: 0 0 15px rgba(66, 165, 245, 0.6);
+    border-color: #66b2ff !important;
+}
+
+.btn-steam {
+    background: linear-gradient(to right, #47a8ff, #005bbb);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+}
+
+.btn-steam:hover {
+    background: linear-gradient(to right, #5bb8ff, #0066dd);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 100, 200, 0.4);
+}
+
+.card-steam {
+    background: #171a21;
+    border: 1px solid #2a475e;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.logo-steam {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+/* Alert styles (success / error) */
+.alert-success-steam {
+    @apply bg-green-900 border border-green-600 text-green-100 px-4 py-3 rounded text-center steam-font;
+}
+.alert-danger-steam {
+    @apply bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font;
+}

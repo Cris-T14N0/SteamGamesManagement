@@ -47,15 +47,31 @@ if (isset($_SESSION['user_id'])) {
 
             <div>
                 <label class="block text-gray-300 text-sm font-medium mb-2 steam-font" for="password">PASSWORD</label>
-                <input type="password" id="password" name="password" required minlength="6"
-                       class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none glow-input transition"
-                       placeholder="Minimum 6 characters">
+                <div class="password-field-wrapper">
+                    <input type="password" id="password" name="password" required minlength="6"
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none glow-input transition"
+                           placeholder="Minimum 6 characters">
+                    <button type="button" class="password-toggle" data-target="password">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div>
                 <label class="block text-gray-300 text-sm font-medium mb-2 steam-font" for="password_confirm">CONFIRM PASSWORD</label>
-                <input type="password" id="password_confirm" name="password_confirm" required
-                       class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none glow-input transition">
+                <div class="password-field-wrapper">
+                    <input type="password" id="password_confirm" name="password_confirm" required
+                           class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none glow-input transition">
+                    <button type="button" class="password-toggle" data-target="password_confirm">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn-steam w-full py-4 text-white rounded shadow-lg text-lg steam-font">
@@ -74,6 +90,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
 
-    <script src="js/register.js"></script>
+    <script src="../scripts/auth.js"></script>
 </body>
 </html>

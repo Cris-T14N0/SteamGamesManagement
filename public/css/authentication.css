@@ -48,3 +48,36 @@ body {
 .alert-danger-steam {
     @apply bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font;
 }
+
+/* Password field wrapper */
+.password-field-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #8b9bb4;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    color: #66c0f4;
+}
+
+.password-toggle:focus {
+    outline: none;
+}
+
+.eye-icon {
+    pointer-events: none;
+}

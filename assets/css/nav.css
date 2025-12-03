@@ -5,95 +5,157 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #1b2838;
+    font-family: "Motiva Sans", "Segoe UI", Arial, sans-serif;
+    background: #171a21;
     color: #c7d5e0;
-    display: flex;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* Sidebar Styles */
+/* Sidebar */
 .sidebar {
     width: 240px;
-    background: linear-gradient(to bottom, #1b2838 0%, #171a21 100%);
+    background: linear-gradient(135deg, #1b2838 0%, #171a21 70%);
     position: fixed;
     left: 0;
     top: 0;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #16202d;
+    border-right: 1px solid #0d1218;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
     z-index: 1000;
+    transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
 }
 
+/* Header */
 .sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #16202d;
-    background: #171a21;
+    padding: 24px 20px;
+    background: rgba(23, 26, 33, 0.85);
+    border-bottom: 1px solid #2a475e;
+    backdrop-filter: blur(12px);
 }
 
 .sidebar-header h2 {
     color: #66c0f4;
-    font-size: 20px;
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    text-shadow: 0 0 10px rgba(102, 192, 244, 0.35);
 }
 
+/* Menu */
 .sidebar-menu {
     list-style: none;
     flex: 1;
-    padding: 10px 0;
+    padding: 8px 0;
     overflow-y: auto;
 }
 
 .sidebar-menu li a {
     display: flex;
     align-items: center;
-    padding: 12px 20px;
-    color: #c7d5e0;
+    padding: 14px 20px;
+    color: #acbccc;
     text-decoration: none;
-    transition: background 0.2s ease;
+    font-weight: 500;
+    transition: all 0.28s ease;
+    position: relative;
 }
 
+/* Icon — Bootstrap Icons filled, perfectly spaced */
+.sidebar-menu li a i.bi {
+    font-size: 21px;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.88;
+    transition: all 0.28s ease;
+}
+
+/* Text label */
+.sidebar-menu .menu-text {
+    flex: 1;
+    letter-spacing: 0.3px;
+}
+
+/* Hover state */
 .sidebar-menu li a:hover {
-    background: rgba(102, 192, 244, 0.1);
-    color: #66c0f4;
+    background: rgba(102, 192, 244, 0.16);
+    color: #ffffff;
+    padding-left: 28px;
 }
 
+.sidebar-menu li a:hover i.bi {
+    transform: scale(1.1);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(102, 192, 244, 0.5));
+}
+
+/* Active state — exact Steam look */
 .sidebar-menu li a.active {
-    background: rgba(102, 192, 244, 0.2);
+    background: rgba(102, 192, 244, 0.24);
     color: #66c0f4;
-    border-left: 3px solid #66c0f4;
+    font-weight: 600;
+    padding-left: 28px;
+    box-shadow: inset 4px 0 0 #66c0f4;
 }
 
-.sidebar-menu .icon {
-    margin-right: 12px;
-    font-size: 18px;
+.sidebar-menu li a.active i.bi {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(102, 192, 244, 0.7));
+    transform: scale(1.08);
 }
 
+/* Footer */
 .sidebar-footer {
-    padding: 15px 20px;
-    border-top: 1px solid #16202d;
-    background: #171a21;
+    padding: 18px 20px;
+    background: rgba(23, 26, 33, 0.95);
+    border-top: 1px solid #2a475e;
+    backdrop-filter: blur(10px);
+    font-size: 14px;
 }
 
-/* Main Content Area */
+.sidebar-footer .user-info {
+    color: #c7d5e0;
+    font-weight: 500;
+}
+
+/* Main content */
 .main-content {
     margin-left: 240px;
-    flex: 1;
-    padding: 20px;
+    padding: 30px;
+    min-height: 100vh;
+    background: #171a21;
+    transition: margin-left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Responsive */
+/* Mobile */
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
     }
-    
     .sidebar.open {
         transform: translateX(0);
+        box-shadow: 10px 0 40px rgba(0, 0, 0, 0.8);
     }
-    
     .main-content {
         margin-left: 0;
     }
+}
+
+/* Custom scrollbar — sleek */
+.sidebar-menu::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(102, 192, 244, 0.3);
+    border-radius: 3px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+    background: #66c0f4;
 }

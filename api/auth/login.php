@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 session_start();
-include '../config.php';
+include __DIR__ . '/../../config.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -28,7 +28,8 @@ if (password_verify($password, $user['password'])) {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     echo json_encode(["success" => true, "message" => "Login successful"]);
-} else {
+}
+else {
     echo json_encode(["success" => false, "message" => "Incorrect password"]);
 }
 

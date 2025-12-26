@@ -28,7 +28,7 @@ if (loginForm) {
         };
 
         try {
-            const res = await fetch('../api/login.php', {
+            const res = await fetch('../api/auth/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -74,7 +74,7 @@ if (registerForm) {
         };
 
         try {
-            const res = await fetch('../api/register.php', {
+            const res = await fetch('../api/auth/register.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

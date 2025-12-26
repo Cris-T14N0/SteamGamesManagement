@@ -15,7 +15,7 @@ if (isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Steam Login</title>
 
-    <link rel="stylesheet" href="css/authentication.css">
+    <link rel="stylesheet" href="../assets/css/authentication.css">
 
     <!-- Google Fonts: Rajdhani (Steam's main font) + Roboto -->
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@ if (isset($_SESSION['user_id'])) {
             <p class="text-gray-400 text-sm">
                 Need an account? 
                 <a href="register.php" class="text-[#66c0f4] hover:text-white transition steam-font font-semibold">
-                    Join Steam → 
+                    Join us → 
                 </a>
             </p>
             <div class="mt-6 pt-6 border-t border-gray-700">

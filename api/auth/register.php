@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 session_start();
-include '../config.php'; // Your DB config
+include __DIR__ . '/../../config.php';
 
 $response = ['success' => false, 'message' => ''];
 

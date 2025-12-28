@@ -1,8 +1,8 @@
 -- ===========================================
 --  CRIAÇÃO DA BASE DE DADOS
 -- ===========================================
-CREATE DATABASE IF NOT EXISTS steam_games2;
-USE steam_games2;
+CREATE DATABASE IF NOT EXISTS sgm_db;
+USE sgm_db;
 
 -- ===========================================
 --  TABELA USER

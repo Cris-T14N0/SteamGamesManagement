@@ -13,12 +13,10 @@ if (isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join Steam</title>
 
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Tailwind + Our shared Steam CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/authentication.css">
+    <link rel="stylesheet" href="../assets/css/authentication.css">
 </head>
 <body class="flex items-center justify-center min-h-screen px-4">
 

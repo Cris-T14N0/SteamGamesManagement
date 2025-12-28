@@ -1,4 +1,6 @@
-// Password toggle functionality
+// ==========================================
+// PASSWORD TOGGLE VISIBILITY
+// ==========================================
 document.querySelectorAll('.password-toggle').forEach(button => {
     button.addEventListener('click', function() {
         const targetId = this.getAttribute('data-target');
@@ -15,13 +17,16 @@ document.querySelectorAll('.password-toggle').forEach(button => {
     });
 });
 
-// Login form handler
+// ==========================================
+// LOGIN HANDLER
+// ==========================================
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
+        const messageDiv = document.getElementById('message');
         const form = e.target;
+        
         const data = {
             email: form.email.value,
             password: form.password.value
@@ -34,8 +39,14 @@ if (loginForm) {
                 body: JSON.stringify(data)
             });
 
-            const json = await res.json();
-            const messageDiv = document.getElementById('message');
+            const textResponse = await res.text();
+            let json;
+
+            try {
+                json = JSON.parse(textResponse);
+            } catch (err) {
+                throw new Error(`Server Error: ${textResponse}`);
+            }
 
             if (json.success) {
                 messageDiv.innerHTML = `<div class="bg-green-900 border border-green-600 text-green-100 px-4 py-3 rounded text-center steam-font">✓ ${json.message}</div>`;
@@ -46,24 +57,31 @@ if (loginForm) {
                 messageDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font">✗ ${json.message}</div>`;
             }
         } catch (err) {
-            document.getElementById('message').innerHTML =
-                `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font">✗ Connection error. Please try again.</div>`;
+            console.error(err);
+            const errorMsg = err.message.includes('Server Error') 
+                ? err.message.replace('Server Error:', '<strong>PHP Error:</strong>') 
+                : 'Connection error. Please check console.';
+                
+            messageDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font text-xs text-left">${errorMsg}</div>`;
         }
     });
 }
 
-// Register form handler
+// ==========================================
+// REGISTER HANDLER
+// ==========================================
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
+        const messageDiv = document.getElementById('message');
         const form = e.target;
+        
         const password = form.password.value;
         const confirm = form.password_confirm.value;
 
         if (password !== confirm) {
-            document.getElementById('message').innerHTML = `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font">Passwords do not match!</div>`;
+            messageDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font">Passwords do not match!</div>`;
             return;
         }
 
@@ -80,21 +98,31 @@ if (registerForm) {
                 body: JSON.stringify(data)
             });
 
-            const json = await res.json();
-            const messageDiv = document.getElementById('message');
+            const textResponse = await res.text();
+            let json;
+
+            try {
+                json = JSON.parse(textResponse);
+            } catch (err) {
+                throw new Error(`Server Error: ${textResponse}`);
+            }
 
             if (json.success) {
-                messageDiv.innerHTML =
-                    `<div class="bg-green-900 border border-green-600 text-green-100 px-4 py-3 rounded text-center steam-font">Account created successfully! Redirecting...</div>`;
+                messageDiv.innerHTML = `<div class="bg-green-900 border border-green-600 text-green-100 px-4 py-3 rounded text-center steam-font">✓ Account created successfully! Redirecting...</div>`;
                 setTimeout(() => {
                     window.location.href = 'dashboard.php';
                 }, 1500);
             } else {
-                messageDiv.innerHTML =
-                    `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font">${json.message || 'Registration failed'}</div>`;
+                messageDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font">✗ ${json.message || 'Registration failed'}</div>`;
             }
+
         } catch (err) {
-            document.getElementById('message').innerHTML = `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font">Connection error. Try again later.</div>`;
+            console.error(err);
+            const errorMsg = err.message.includes('Server Error') 
+                ? err.message.replace('Server Error:', '<strong>PHP Error:</strong>') 
+                : 'Connection error. Check console (F12).';
+
+            messageDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded text-center steam-font text-xs text-left">${errorMsg}</div>`;
         }
     });
 }

@@ -19,8 +19,7 @@ if (!$data || !isset($data['password'])) {
 $user_id = $_SESSION['user_id'];
 $password = $data['password'];
 
-// Get user password
-$stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT password FROM `USER` WHERE id_user = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -38,12 +37,10 @@ if (!password_verify($password, $user['password'])) {
     exit;
 }
 
-// Delete user account
-$stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+$stmt = $conn->prepare("DELETE FROM `USER` WHERE id_user = ?");
 $stmt->bind_param("i", $user_id);
 
 if ($stmt->execute()) {
-    // Destroy session
     session_destroy();
     echo json_encode(["success" => true, "message" => "Account deleted successfully"]);
 } else {

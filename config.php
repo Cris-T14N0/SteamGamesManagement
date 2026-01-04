@@ -1,4 +1,5 @@
 <?php
+// Before deploy
 $host = "localhost";
 $user = "root";
 $password = "";

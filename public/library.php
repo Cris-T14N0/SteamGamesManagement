@@ -11,7 +11,7 @@ include '../config.php';
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'User';
 
-// Buscar as Bibliotecas do Utilizador
+// Buscar as Bibliotecas do Utilizador com game_identifier
 $sqlLibs = "SELECT * FROM LIBRARY WHERE user_id = ? ORDER BY id_library ASC";
 $stmt = $conn->prepare($sqlLibs);
 $stmt->bind_param("i", $user_id);
@@ -23,8 +23,9 @@ $gameLists = [];
 while ($lib = $resultLibs->fetch_assoc()) {
     $libId = $lib['id_library'];
     
+    // Busca jogos com id_game e game_identifier para usar no modal
     $sqlGames = "
-        SELECT GAME.title 
+        SELECT GAME.id_game, GAME.title, GAME.game_identifier
         FROM GAME
         JOIN LIBRARY_GAME ON GAME.id_game = LIBRARY_GAME.game_id
         WHERE LIBRARY_GAME.library_id = ?
@@ -38,7 +39,7 @@ while ($lib = $resultLibs->fetch_assoc()) {
     
     $games = [];
     while ($game = $resultGames->fetch_assoc()) {
-        $games[] = $game['title'];
+        $games[] = $game;
     }
     
     $gameLists[] = [
@@ -142,9 +143,24 @@ include '../assets/nav.php';
                             <p class="text-[#acbccc] text-sm italic ml-8">No games in this list yet</p>
                             <?php else: ?>
                                 <?php foreach ($list['games'] as $game): ?>
-                                <div class="ml-8 bg-[#0d1218] border border-[#2a475e] rounded-lg px-4 py-3 flex items-center gap-3 hover:border-[#66c0f4]/30 transition-all">
-                                    <i class="bi bi-controller text-[#66c0f4]"></i>
-                                    <span class="text-white"><?php echo htmlspecialchars($game); ?></span>
+                                    <?php 
+                                        // URL da imagem do jogo
+                                        $imageUrl = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" . $game['game_identifier'] . "/header.jpg"; 
+                                    ?>
+                                <div class="ml-8 bg-[#0d1218] border border-[#2a475e] rounded-lg px-4 py-3 flex items-center gap-3 hover:border-[#66c0f4]/30 transition-all cursor-pointer"
+                                     onclick="openGameDetails(<?php echo $game['id_game']; ?>)">
+                                    <!-- Miniatura do jogo -->
+                                    <div class="w-16 h-9 bg-[#1b2838] rounded overflow-hidden flex-shrink-0">
+                                        <img src="<?php echo $imageUrl; ?>" 
+                                             alt="<?php echo htmlspecialchars($game['title']); ?>"
+                                             class="w-full h-full object-cover"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                        <div class="w-full h-full hidden items-center justify-center">
+                                            <i class="bi bi-controller text-[#66c0f4]/30 text-lg"></i>
+                                        </div>
+                                    </div>
+                                    <span class="text-white flex-1"><?php echo htmlspecialchars($game['title']); ?></span>
+                                    <i class="bi bi-info-circle text-[#66c0f4] opacity-0 group-hover:opacity-100 transition-opacity"></i>
                                 </div>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -162,6 +178,10 @@ include '../assets/nav.php';
         </div>
     </main>
 
+    <!-- Include do Modal Reutilizável -->
+    <?php include '../assets/game_details_modal.php'; ?>
+
+    <!-- Modal de Criar/Editar Lista -->
     <div id="listModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
         <div class="bg-[#1b2838] border border-[#2a475e] rounded-lg max-w-md w-full p-6 shadow-2xl">
             <h3 id="modalTitle" class="text-2xl font-bold text-white mb-4 steam-font tracking-wide">Create New List</h3>

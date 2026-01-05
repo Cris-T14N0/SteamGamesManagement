@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const noResults = document.getElementById('noResults');
     const resultCount = document.getElementById('resultCount');
 
-    // Modal Elements
+    // Modal Elements (Add Game)
     const addGameModal = document.getElementById('addGameModal');
     const listsCheckboxes = document.getElementById('listsCheckboxes');
     const cancelAddBtn = document.getElementById('cancelAddBtn');
@@ -42,7 +42,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    //  FILTER LOGIC
+    //  FUNÇÕES DE ATUALIZAÇÃO DA UI
+    // ==========================================
+    
+    // Atualiza o card de um jogo específico na grid
+    function updateGameCard(gameId, inLibrary, gameName) {
+        const card = document.querySelector(`.game-card [data-game-id="${gameId}"]`)?.closest('.game-card');
+        if (!card) return;
+
+        const actionContainer = card.querySelector('.action-container');
+        const imageContainer = card.querySelector('.aspect-\\[16\\/9\\]');
+
+        if (inLibrary) {
+            // Muda para botão Remove
+            actionContainer.innerHTML = `
+                <button class="remove-btn w-full bg-red-900/30 hover:bg-red-900/50 border border-red-700/50 text-red-400 font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
+                        data-game-id="${gameId}"
+                        data-game-name="${gameName}">
+                    <i class="bi bi-dash-circle"></i> Remove
+                </button>
+            `;
+
+            // Adiciona badge "In Library"
+            if (!imageContainer.querySelector('.library-badge')) {
+                const badge = document.createElement('div');
+                badge.className = 'library-badge absolute top-2 right-2 bg-[#5c7e10] text-white text-xs px-2 py-1 rounded-md';
+                badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> In Library';
+                imageContainer.appendChild(badge);
+            }
+        } else {
+            // Muda para botão Add
+            actionContainer.innerHTML = `
+                <button class="add-btn w-full bg-[#66c0f4] hover:bg-[#4a9fd8] text-white font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
+                        data-game-id="${gameId}"
+                        data-game-name="${gameName}">
+                    <i class="bi bi-plus-circle"></i> Add to Library
+                </button>
+            `;
+
+            // Remove badge "In Library"
+            const badge = imageContainer.querySelector('.library-badge');
+            if (badge) badge.remove();
+        }
+    }
+
+    // ==========================================
+    //  FILTER LOGIC (Filtros de pesquisa)
     // ==========================================
     function filterGames() {
         const searchTerm = searchInput.value.toLowerCase().trim();
@@ -84,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (genreSelect) genreSelect.addEventListener('change', filterGames);
 
     // ==========================================
-    //  MODAL LOGIC
+    //  ADD GAME MODAL LOGIC
     // ==========================================
 
     async function fetchListsAndRender() {
@@ -148,25 +193,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (json.success) {
                     showToast(json.message, true);
-                    if (selectedAddBtn) {
-                        const card = selectedAddBtn.closest('.game-card');
-                        const imageContainer = card.querySelector('.aspect-\\[16\\/9\\]');
-
-                        selectedAddBtn.outerHTML = `
-                            <button class="remove-btn w-full bg-red-900/30 hover:bg-red-900/50 border border-red-700/50 text-red-400 font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
-                                    data-game-id="${selectedGameId}"
-                                    data-game-name="${selectedGameName}">
-                                <i class="bi bi-dash-circle"></i> Remove
-                            </button>
-                        `;
-
-                        if (!imageContainer.querySelector('.library-badge')) {
-                            const badge = document.createElement('div');
-                            badge.className = 'library-badge absolute top-2 right-2 bg-[#5c7e10] text-white text-xs px-2 py-1 rounded-md animate-fade-in';
-                            badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> In Library';
-                            imageContainer.appendChild(badge);
-                        }
+                    
+                    // Atualiza o card na grid principal
+                    updateGameCard(selectedGameId, true, selectedGameName);
+                    
+                    // Atualiza o botão no modal de detalhes se estiver aberto
+                    if (typeof window.updateModalButton === 'function') {
+                        window.updateModalButton(selectedGameId, true);
                     }
+                    
                     closeAddModal();
                 } else {
                     showToast(json.message || 'Error adding game', false);
@@ -186,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', async function (e) {
 
-        // ADD
+        // ADD - Abre modal de adicionar jogo
         const addBtn = e.target.closest('.add-btn');
         if (addBtn) {
             selectedGameId = addBtn.dataset.gameId;
@@ -199,13 +234,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchListsAndRender();
         }
 
-        // REMOVE
+        // REMOVE - Remove jogo da biblioteca
         const removeBtn = e.target.closest('.remove-btn');
         if (removeBtn) {
-            const card = removeBtn.closest('.game-card');
             const gameId = removeBtn.dataset.gameId;
             const gameName = removeBtn.dataset.gameName;
-            const imageContainer = card.querySelector('.aspect-\\[16\\/9\\]');
 
             const originalContent = removeBtn.innerHTML;
             removeBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i>';
@@ -222,15 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (json.success) {
                     showToast(`${gameName} removed from all lists`, false);
-                    removeBtn.outerHTML = `
-                        <button class="add-btn w-full bg-[#66c0f4] hover:bg-[#4a9fd8] text-white font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
-                                data-game-id="${gameId}"
-                                data-game-name="${gameName}">
-                            <i class="bi bi-plus-circle"></i> Add to Library
-                        </button>
-                    `;
-                    const badge = imageContainer.querySelector('.library-badge');
-                    if (badge) badge.remove();
+                    
+                    // Atualiza o card na grid principal
+                    updateGameCard(gameId, false, gameName);
+                    
+                    // Atualiza o botão no modal de detalhes se estiver aberto
+                    if (typeof window.updateModalButton === 'function') {
+                        window.updateModalButton(gameId, false);
+                    }
                 } else {
                     showToast(json.message || 'Error removing game', false);
                     removeBtn.innerHTML = originalContent;
@@ -244,219 +276,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Fecha modal com ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !addGameModal.classList.contains('hidden')) {
             closeAddModal();
-        }
-    });
-});
-
-// Game Details Modal Functionality
-document.addEventListener('DOMContentLoaded', function () {
-    const gameImages = document.querySelectorAll('.game-image');
-    const gameDetailsModal = document.getElementById('gameDetailsModal');
-    const gameDetailsContent = document.getElementById('gameDetailsContent');
-
-    gameImages.forEach(img => {
-        img.addEventListener('click', function () {
-            const gameId = this.dataset.gameId;
-            openGameDetails(gameId);
-        });
-    });
-
-    function openGameDetails(gameId) {
-        gameDetailsModal.classList.remove('hidden');
-        gameDetailsModal.classList.add('flex');
-
-        // Show loading state
-        gameDetailsContent.innerHTML = `
-                    <div class="flex items-center justify-center py-12">
-                        <i class="bi bi-arrow-clockwise animate-spin text-[#66c0f4] text-4xl"></i>
-                    </div>
-                `;
-
-        // Fetch game details
-        fetch(`../api/library/get_game_details.php?id=${gameId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    displayGameDetails(data.game);
-                } else {
-                    gameDetailsContent.innerHTML = `
-                                <div class="text-center py-12">
-                                    <i class="bi bi-exclamation-triangle text-red-500 text-4xl mb-4"></i>
-                                    <p class="text-[#acbccc]">Failed to load game details</p>
-                                </div>
-                            `;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                gameDetailsContent.innerHTML = `
-                            <div class="text-center py-12">
-                                <i class="bi bi-exclamation-triangle text-red-500 text-4xl mb-4"></i>
-                                <p class="text-[#acbccc]">An error occurred</p>
-                            </div>
-                        `;
-            });
-    }
-
-    function displayGameDetails(game) {
-        const imageUrl = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.game_identifier}/header.jpg`;
-
-        let reviewHTML = '';
-        if (game.overall_review) {
-            const reviewColor = getReviewColor(game.overall_review_pct);
-            reviewHTML = `
-                        <div class="bg-[#0d1218] rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm text-[#acbccc]">Overall Reviews</span>
-                                <span class="text-${reviewColor} font-semibold">${game.overall_review}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1 bg-[#1b2838] rounded-full h-2">
-                                    <div class="bg-${reviewColor} h-2 rounded-full" style="width: ${game.overall_review_pct}%"></div>
-                                </div>
-                                <span class="text-sm text-[#acbccc]">${game.overall_review_pct}%</span>
-                            </div>
-                            <p class="text-xs text-[#acbccc] mt-2">${game.overall_review_count?.toLocaleString() || 0} reviews</p>
-                        </div>
-                    `;
-        }
-
-        gameDetailsContent.innerHTML = `
-                    <button onclick="document.getElementById('gameDetailsModal').classList.add('hidden'); document.getElementById('gameDetailsModal').classList.remove('flex');" 
-                            class="absolute top-4 right-4 text-[#acbccc] hover:text-white transition-colors text-2xl">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-
-                    <div class="mb-6">
-                        <img src="${imageUrl}" alt="${game.title}" class="w-full rounded-lg mb-4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'460\' height=\'215\'%3E%3Crect fill=\'%231b2838\' width=\'460\' height=\'215\'/%3E%3C/svg%3E'">
-                        <h2 class="text-3xl font-bold text-white mb-2 steam-font">${game.title}</h2>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            ${game.genres ? game.genres.split(', ').map(g => `<span class="bg-[#2a475e] text-[#acbccc] px-3 py-1 rounded-md text-sm">${g}</span>`).join('') : ''}
-                        </div>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-6 mb-6">
-                        <div class="space-y-4">
-                            ${game.release_date ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Release Date</span>
-                                <p class="text-white font-medium">${new Date(game.release_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.developer ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Developer</span>
-                                <p class="text-white font-medium">${game.developer}</p>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.publisher ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Publisher</span>
-                                <p class="text-white font-medium">${game.publisher}</p>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.age_rating ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Age Rating</span>
-                                <p class="text-white font-medium">${game.age_rating}</p>
-                            </div>
-                            ` : ''}
-                        </div>
-
-                        <div class="space-y-4">
-                            ${game.platforms ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Platforms</span>
-                                <div class="flex gap-2 mt-1">
-                                    ${game.platforms.split(', ').map(p => `<i class="bi bi-${getPlatformIcon(p)} text-white text-xl" title="${p}"></i>`).join('')}
-                                </div>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.categories ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Features</span>
-                                <div class="flex flex-wrap gap-2 mt-1">
-                                    ${game.categories.split(', ').slice(0, 5).map(c => `<span class="bg-[#0d1218] text-[#acbccc] px-2 py-1 rounded text-xs">${c}</span>`).join('')}
-                                </div>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.dlc_available ? `
-                            <div>
-                                <span class="bg-[#66c0f4] text-white px-3 py-1 rounded-md text-sm inline-flex items-center gap-2">
-                                    <i class="bi bi-puzzle"></i> DLC Available
-                                </span>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-
-                    ${reviewHTML}
-
-                    ${game.about_description ? `
-                    <div class="mt-6 bg-[#0d1218] rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-3">About This Game</h3>
-                        <p class="text-[#acbccc] leading-relaxed">${game.about_description}</p>
-                    </div>
-                    ` : ''}
-
-                    ${game.awards ? `
-                    <div class="mt-6 bg-[#0d1218] rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                            <i class="bi bi-trophy-fill text-yellow-500"></i> Awards
-                        </h3>
-                        <p class="text-[#acbccc]">${game.awards}</p>
-                    </div>
-                    ` : ''}
-
-                    <div class="mt-6 flex items-center justify-end p-4 bg-[#0d1218] rounded-lg">
-                        ${game.inLibrary ? `
-                            <span class="bg-[#5c7e10] text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill"></i> In Library
-                            </span>
-                        ` : `
-                            <button class="add-btn bg-[#66c0f4] hover:bg-[#4a9fd8] text-white font-bold px-6 py-3 rounded-lg transition-all flex items-center gap-2"
-                                    data-game-id="${game.id_game}" data-game-name="${game.title}">
-                                <i class="bi bi-plus-circle"></i> Add to Library
-                            </button>
-                        `}
-                    </div>
-                `;
-    }
-
-    function getReviewColor(percentage) {
-        if (percentage >= 80) return '[#66c0f4]';
-        if (percentage >= 70) return '[#a4d007]';
-        if (percentage >= 40) return 'yellow-500';
-        return 'red-500';
-    }
-
-    function getPlatformIcon(platform) {
-        const icons = {
-            'Windows': 'windows',
-            'Mac': 'apple',
-            'Linux': 'ubuntu',
-        };
-        return icons[platform] || 'display';
-    }
-
-    // Close modal when clicking outside
-    gameDetailsModal.addEventListener('click', function (e) {
-        if (e.target === gameDetailsModal) {
-            gameDetailsModal.classList.add('hidden');
-            gameDetailsModal.classList.remove('flex');
         }
     });
 });

@@ -77,21 +77,6 @@ include '../assets/nav.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="../assets/css/authentication.css">
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #0d1218;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #2a475e;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #66c0f4;
-        }
-    </style>
 </head>
 <body class="bg-[#0d1218] text-gray-100">
     
@@ -139,8 +124,9 @@ include '../assets/nav.php';
                      data-name="<?php echo strtolower($game['name']); ?>"
                      data-genre="<?php echo strtolower($game['genre'] ?? ''); ?>">
                     
-                    <div class="aspect-[16/9] bg-[#000] relative overflow-hidden group-hover:brightness-110 transition-all cursor-pointer game-image" 
-                         data-game-id="<?php echo $game['id_game']; ?>">
+                    <!-- Imagem clicável para abrir modal -->
+                    <div class="aspect-[16/9] bg-[#000] relative overflow-hidden group-hover:brightness-110 transition-all cursor-pointer" 
+                         onclick="openGameDetails(<?php echo $game['id_game']; ?>)">
                         <img src="<?php echo $imageUrl; ?>" 
                              alt="<?php echo htmlspecialchars($game['name']); ?>" 
                              class="w-full h-full object-cover"
@@ -191,16 +177,8 @@ include '../assets/nav.php';
         </div>
     </main>
 
-    <!-- Game Details Modal -->
-    <div id="gameDetailsModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-[#1b2838] border border-[#2a475e] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl">
-            <div id="gameDetailsContent" class="p-6">
-                <div class="flex items-center justify-center py-12">
-                    <i class="bi bi-arrow-clockwise animate-spin text-[#66c0f4] text-4xl"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Include do Modal Reutilizável -->
+    <?php include '../assets/game_details_modal.php'; ?>
 
     <!-- Add Game Modal -->
     <div id="addGameModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">

@@ -2,9 +2,9 @@
 // Sending to Main
 // Database configuration (Hostinger)
 $host = "localhost";
-$user = "u506280443_crijuldbUser";
+$user = "root";
 $password = "B;fNW7FS59";
-$dbname = "u506280443_crijulDB";
+$dbname = "sgm_db";
 
 // Create connection
 $conn = new mysqli($host, $user, $password, $dbname);

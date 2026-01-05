@@ -7,11 +7,13 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Conexão à BD
 include '../config.php';
 
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'User';
 
+// Obter Estatísticas Reais
 
 // Contar Total de Listas
 $stmtLists = $conn->prepare("SELECT COUNT(*) FROM LIBRARY WHERE user_id = ?");
@@ -21,9 +23,9 @@ $stmtLists->bind_result($totalLists);
 $stmtLists->fetch();
 $stmtLists->close();
 
-// Usamos DISTINCT para que se o mesmo jogo estiver em 2 listas, conte apenas como 1 jogo salvo
+// Contar Total de Jogos 
 $sqlGames = "
-    SELECT COUNT(DISTINCT LIBRARY_GAME.game_id) 
+    SELECT LIBRARY_GAME.game_id 
     FROM LIBRARY_GAME
     INNER JOIN LIBRARY ON LIBRARY_GAME.library_id = LIBRARY.id_library
     WHERE LIBRARY.user_id = ?
@@ -31,18 +33,25 @@ $sqlGames = "
 $stmtGames = $conn->prepare($sqlGames);
 $stmtGames->bind_param("i", $user_id);
 $stmtGames->execute();
-$stmtGames->bind_result($savedGames);
-$stmtGames->fetch();
+$resultGames = $stmtGames->get_result();
+
+$uniqueGameIds = [];
+while ($row = $resultGames->fetch_assoc()) {
+    $gameId = $row['game_id'];
+    if (!in_array($gameId, $uniqueGameIds)) {
+        $uniqueGameIds[] = $gameId;
+    }
+}
+$savedGames = count($uniqueGameIds); 
 $stmtGames->close();
 
-// C. Obter alguns jogos para mostrar no "Quick Access"
+// Obter jogos para o Quick Access
 $sqlQuick = "
-    SELECT DISTINCT GAME.title, GAME.game_identifier
+    SELECT GAME.title, GAME.game_identifier, GAME.id_game
     FROM GAME
     INNER JOIN LIBRARY_GAME ON GAME.id_game = LIBRARY_GAME.game_id
     INNER JOIN LIBRARY ON LIBRARY_GAME.library_id = LIBRARY.id_library
     WHERE LIBRARY.user_id = ?
-    LIMIT 4
 ";
 $stmtQuick = $conn->prepare($sqlQuick);
 $stmtQuick->bind_param("i", $user_id);
@@ -50,8 +59,19 @@ $stmtQuick->execute();
 $resultQuick = $stmtQuick->get_result();
 
 $quickGames = [];
+$seenIds = [];
+
 while ($row = $resultQuick->fetch_assoc()) {
-    $quickGames[] = $row;
+    // Parar quando tivermos 4 jogos únicos
+    if (count($quickGames) >= 4) {
+        break;
+    }
+
+    // Se este jogo ainda não foi adicionado à lista visual
+    if (!in_array($row['id_game'], $seenIds)) {
+        $quickGames[] = $row;
+        $seenIds[] = $row['id_game'];
+    }
 }
 $stmtQuick->close();
 
@@ -80,30 +100,29 @@ include '../assets/nav.php';
                 <p class="text-[#acbccc] text-lg">Welcome back to your game library.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                 
-                <div class="bg-gradient-to-br from-[#1b2838] to-[#171a21] border border-[#2a475e] rounded-xl p-6 shadow-lg hover:shadow-2xl hover:border-[#66c0f4]/50 transition-all duration-300 hover:scale-105 group">
+                <div class="bg-gradient-to-br from-[#1b2838] to-[#171a21] border border-[#2a475e] rounded-xl p-8 shadow-lg hover:shadow-2xl hover:border-[#66c0f4]/50 transition-all duration-300 hover:scale-[1.02] group">
                     <div class="flex items-center justify-between mb-4">
-                        <div class="bg-[#66c0f4]/20 rounded-lg p-3 group-hover:bg-[#66c0f4]/30 transition-colors">
-                            <i class="bi bi-controller text-3xl text-[#66c0f4]"></i>
+                        <div class="bg-[#66c0f4]/20 rounded-lg p-4 group-hover:bg-[#66c0f4]/30 transition-colors">
+                            <i class="bi bi-controller text-4xl text-[#66c0f4]"></i>
                         </div>
                         <span class="text-[#66c0f4] text-xs font-medium uppercase tracking-widest">Library</span>
                     </div>
-                    <h3 class="text-[#acbccc] text-sm font-medium mb-1">Total Saved Games</h3>
-                    <p class="text-4xl font-bold text-white"><?php echo $savedGames; ?></p>
+                    <h3 class="text-[#acbccc] text-base font-medium mb-1">Total Saved Games</h3>
+                    <p class="text-5xl font-bold text-white"><?php echo $savedGames; ?></p>
                 </div>
 
-                <div class="bg-gradient-to-br from-[#1b2838] to-[#171a21] border border-[#2a475e] rounded-xl p-6 shadow-lg hover:shadow-2xl hover:border-[#5c7e10]/50 transition-all duration-300 hover:scale-105 group">
+                <div class="bg-gradient-to-br from-[#1b2838] to-[#171a21] border border-[#2a475e] rounded-xl p-8 shadow-lg hover:shadow-2xl hover:border-[#5c7e10]/50 transition-all duration-300 hover:scale-[1.02] group">
                     <div class="flex items-center justify-between mb-4">
-                        <div class="bg-[#5c7e10]/20 rounded-lg p-3 group-hover:bg-[#5c7e10]/30 transition-colors">
-                            <i class="bi bi-list-ul text-3xl text-[#a4d007]"></i>
+                        <div class="bg-[#5c7e10]/20 rounded-lg p-4 group-hover:bg-[#5c7e10]/30 transition-colors">
+                            <i class="bi bi-list-ul text-4xl text-[#a4d007]"></i>
                         </div>
                         <span class="text-[#a4d007] text-xs font-medium uppercase tracking-widest">Collections</span>
                     </div>
-                    <h3 class="text-[#acbccc] text-sm font-medium mb-1">Active Lists</h3>
-                    <p class="text-4xl font-bold text-white"><?php echo $totalLists; ?></p>
+                    <h3 class="text-[#acbccc] text-base font-medium mb-1">Active Lists</h3>
+                    <p class="text-5xl font-bold text-white"><?php echo $totalLists; ?></p>
                 </div>
-                
                 
             </div>
 
@@ -116,7 +135,7 @@ include '../assets/nav.php';
                         <?php 
                             $imageUrl = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" . $game['game_identifier'] . "/header.jpg"; 
                         ?>
-                        <a href="#" class="block group relative rounded-lg overflow-hidden border border-[#2a475e] hover:border-[#66c0f4] transition-all shadow-lg hover:shadow-[#66c0f4]/20">
+                        <div class="block group relative rounded-lg overflow-hidden border border-[#2a475e] hover:border-[#66c0f4] transition-all shadow-lg hover:shadow-[#66c0f4]/20 cursor-default">
                             <div class="aspect-video bg-black">
                                 <img src="<?php echo $imageUrl; ?>" 
                                      alt="<?php echo htmlspecialchars($game['title']); ?>" 
@@ -126,7 +145,7 @@ include '../assets/nav.php';
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0d1218] to-transparent p-4 pt-12">
                                 <h3 class="text-white font-bold truncate group-hover:text-[#66c0f4] transition-colors"><?php echo htmlspecialchars($game['title']); ?></h3>
                             </div>
-                        </a>
+                        </div>
                     <?php endforeach; ?>
                 </div>
                 

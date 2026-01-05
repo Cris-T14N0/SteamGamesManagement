@@ -44,7 +44,6 @@ $sql = "
         GAME.id_game, 
         GAME.title as name, 
         GAME.game_identifier, 
-        GAME.original_price,
         YEAR(GAME.release_date) as year,
         GROUP_CONCAT(GENRE.name SEPARATOR ', ') as genre,
         (CASE WHEN LIBRARY_GAME.game_id IS NOT NULL THEN 1 ELSE 0 END) as inLibrary
@@ -121,12 +120,6 @@ include '../assets/nav.php';
                         <option value="<?php echo strtolower($g); ?>"><?php echo htmlspecialchars($g); ?></option>
                     <?php endforeach; ?>
                 </select>
-
-                <select id="sortSelect" class="bg-[#1b2838] border border-[#2a475e] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#66c0f4] focus:ring-2 focus:ring-[#66c0f4]/20 transition-all md:w-48 cursor-pointer">
-                    <option value="default">Relevance</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                </select>
             </div>
 
             <div class="mb-4">
@@ -140,13 +133,11 @@ include '../assets/nav.php';
                     
                     <?php 
                         $imageUrl = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" . $game['game_identifier'] . "/header.jpg"; 
-                        $price = (float)$game['original_price'] / 100;
                     ?>
 
                 <div class="game-card bg-[#1b2838] border border-[#2a475e] rounded-lg overflow-hidden hover:border-[#66c0f4]/50 transition-all group shadow-lg flex flex-col" 
                      data-name="<?php echo strtolower($game['name']); ?>"
-                     data-genre="<?php echo strtolower($game['genre'] ?? ''); ?>"
-                     data-price="<?php echo $price; ?>">
+                     data-genre="<?php echo strtolower($game['genre'] ?? ''); ?>">
                     
                     <div class="aspect-[16/9] bg-[#000] relative overflow-hidden group-hover:brightness-110 transition-all cursor-pointer game-image" 
                          data-game-id="<?php echo $game['id_game']; ?>">
@@ -172,19 +163,7 @@ include '../assets/nav.php';
                             <span><?php echo $game['year']; ?></span>
                         </div>
 
-                        <div class="mt-auto mb-4 flex items-center justify-end">
-                            <span class="text-white text-sm font-medium">
-                                <?php 
-                                    if ($price >= 0) {
-                                        echo number_format($price, 2, '.', ',') . ' €';
-                                    } else {
-                                        echo '<span class="text-[#acbccc]">Free</span>';
-                                    }
-                                ?>
-                            </span>
-                        </div>
-
-                        <div class="action-container">
+                        <div class="mt-auto action-container">
                             <?php if ($game['inLibrary']): ?>
                                 <button class="remove-btn w-full bg-red-900/30 hover:bg-red-900/50 border border-red-700/50 text-red-400 font-medium py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
                                         data-game-id="<?php echo $game['id_game']; ?>"
@@ -246,236 +225,5 @@ include '../assets/nav.php';
     </div>
 
     <script src="../scripts/search.js"></script>
-    <script>
-        // Game Details Modal Functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const gameImages = document.querySelectorAll('.game-image');
-            const gameDetailsModal = document.getElementById('gameDetailsModal');
-            const gameDetailsContent = document.getElementById('gameDetailsContent');
-
-            gameImages.forEach(img => {
-                img.addEventListener('click', function() {
-                    const gameId = this.dataset.gameId;
-                    openGameDetails(gameId);
-                });
-            });
-
-            function openGameDetails(gameId) {
-                gameDetailsModal.classList.remove('hidden');
-                gameDetailsModal.classList.add('flex');
-                
-                // Show loading state
-                gameDetailsContent.innerHTML = `
-                    <div class="flex items-center justify-center py-12">
-                        <i class="bi bi-arrow-clockwise animate-spin text-[#66c0f4] text-4xl"></i>
-                    </div>
-                `;
-
-                // Fetch game details
-                fetch(`../api/library/get_game_details.php?id=${gameId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            displayGameDetails(data.game);
-                        } else {
-                            gameDetailsContent.innerHTML = `
-                                <div class="text-center py-12">
-                                    <i class="bi bi-exclamation-triangle text-red-500 text-4xl mb-4"></i>
-                                    <p class="text-[#acbccc]">Failed to load game details</p>
-                                </div>
-                            `;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        gameDetailsContent.innerHTML = `
-                            <div class="text-center py-12">
-                                <i class="bi bi-exclamation-triangle text-red-500 text-4xl mb-4"></i>
-                                <p class="text-[#acbccc]">An error occurred</p>
-                            </div>
-                        `;
-                    });
-            }
-
-            function displayGameDetails(game) {
-                const imageUrl = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.game_identifier}/header.jpg`;
-                const price = parseFloat(game.original_price) / 100;
-                const discountPrice = game.discount_price ? parseFloat(game.discount_price) / 100 : null;
-                
-                let priceHTML = '';
-                if (price <= 0) {
-                    priceHTML = '<span class="text-2xl font-bold text-[#acbccc]">Free to Play</span>';
-                } else if (discountPrice && game.discount_percentage > 0) {
-                    priceHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="bg-[#4c6b22] text-[#a4d007] px-2 py-1 text-lg font-bold">-${game.discount_percentage}%</span>
-                            <div>
-                                <span class="text-[#acbccc] line-through text-sm">€${price.toFixed(2)}</span>
-                                <span class="text-[#a4d007] text-2xl font-bold ml-2">€${discountPrice.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    priceHTML = `<span class="text-2xl font-bold text-white">€${price.toFixed(2)}</span>`;
-                }
-
-                let reviewHTML = '';
-                if (game.overall_review) {
-                    const reviewColor = getReviewColor(game.overall_review_pct);
-                    reviewHTML = `
-                        <div class="bg-[#0d1218] rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm text-[#acbccc]">Overall Reviews</span>
-                                <span class="text-${reviewColor} font-semibold">${game.overall_review}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1 bg-[#1b2838] rounded-full h-2">
-                                    <div class="bg-${reviewColor} h-2 rounded-full" style="width: ${game.overall_review_pct}%"></div>
-                                </div>
-                                <span class="text-sm text-[#acbccc]">${game.overall_review_pct}%</span>
-                            </div>
-                            <p class="text-xs text-[#acbccc] mt-2">${game.overall_review_count?.toLocaleString() || 0} reviews</p>
-                        </div>
-                    `;
-                }
-
-                gameDetailsContent.innerHTML = `
-                    <button onclick="document.getElementById('gameDetailsModal').classList.add('hidden'); document.getElementById('gameDetailsModal').classList.remove('flex');" 
-                            class="absolute top-4 right-4 text-[#acbccc] hover:text-white transition-colors text-2xl">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-
-                    <div class="mb-6">
-                        <img src="${imageUrl}" alt="${game.title}" class="w-full rounded-lg mb-4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'460\' height=\'215\'%3E%3Crect fill=\'%231b2838\' width=\'460\' height=\'215\'/%3E%3C/svg%3E'">
-                        <h2 class="text-3xl font-bold text-white mb-2 steam-font">${game.title}</h2>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            ${game.genres ? game.genres.split(', ').map(g => `<span class="bg-[#2a475e] text-[#acbccc] px-3 py-1 rounded-md text-sm">${g}</span>`).join('') : ''}
-                        </div>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-6 mb-6">
-                        <div class="space-y-4">
-                            ${game.release_date ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Release Date</span>
-                                <p class="text-white font-medium">${new Date(game.release_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.developer ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Developer</span>
-                                <p class="text-white font-medium">${game.developer}</p>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.publisher ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Publisher</span>
-                                <p class="text-white font-medium">${game.publisher}</p>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.age_rating ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Age Rating</span>
-                                <p class="text-white font-medium">${game.age_rating}</p>
-                            </div>
-                            ` : ''}
-                        </div>
-
-                        <div class="space-y-4">
-                            ${game.platforms ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Platforms</span>
-                                <div class="flex gap-2 mt-1">
-                                    ${game.platforms.split(', ').map(p => `<i class="bi bi-${getPlatformIcon(p)} text-white text-xl" title="${p}"></i>`).join('')}
-                                </div>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.categories ? `
-                            <div>
-                                <span class="text-[#acbccc] text-sm">Features</span>
-                                <div class="flex flex-wrap gap-2 mt-1">
-                                    ${game.categories.split(', ').slice(0, 5).map(c => `<span class="bg-[#0d1218] text-[#acbccc] px-2 py-1 rounded text-xs">${c}</span>`).join('')}
-                                </div>
-                            </div>
-                            ` : ''}
-                            
-                            ${game.dlc_available ? `
-                            <div>
-                                <span class="bg-[#66c0f4] text-white px-3 py-1 rounded-md text-sm inline-flex items-center gap-2">
-                                    <i class="bi bi-puzzle"></i> DLC Available
-                                </span>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-
-                    ${reviewHTML}
-
-                    ${game.about_description ? `
-                    <div class="mt-6 bg-[#0d1218] rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-3">About This Game</h3>
-                        <p class="text-[#acbccc] leading-relaxed">${game.about_description}</p>
-                    </div>
-                    ` : ''}
-
-                    ${game.awards ? `
-                    <div class="mt-6 bg-[#0d1218] rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                            <i class="bi bi-trophy-fill text-yellow-500"></i> Awards
-                        </h3>
-                        <p class="text-[#acbccc]">${game.awards}</p>
-                    </div>
-                    ` : ''}
-
-                    <div class="mt-6 flex items-center justify-between p-4 bg-[#0d1218] rounded-lg">
-                        <div>${priceHTML}</div>
-                        ${game.inLibrary ? `
-                            <span class="bg-[#5c7e10] text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill"></i> In Library
-                            </span>
-                        ` : `
-                            <button class="add-btn bg-[#66c0f4] hover:bg-[#4a9fd8] text-white font-bold px-6 py-3 rounded-lg transition-all flex items-center gap-2"
-                                    data-game-id="${game.id_game}" data-game-name="${game.title}">
-                                <i class="bi bi-plus-circle"></i> Add to Library
-                            </button>
-                        `}
-                    </div>
-                `;
-            }
-
-            function getReviewColor(percentage) {
-                if (percentage >= 80) return '[#66c0f4]';
-                if (percentage >= 70) return '[#a4d007]';
-                if (percentage >= 40) return 'yellow-500';
-                return 'red-500';
-            }
-
-            function getPlatformIcon(platform) {
-                const icons = {
-                    'Windows': 'windows',
-                    'Mac': 'apple',
-                    'Linux': 'ubuntu',
-                };
-                return icons[platform] || 'display';
-            }
-
-            // Close modal when clicking outside
-            gameDetailsModal.addEventListener('click', function(e) {
-                if (e.target === gameDetailsModal) {
-                    gameDetailsModal.classList.add('hidden');
-                    gameDetailsModal.classList.remove('flex');
-                }
-            });
-        });
-    </script>
 </body>
 </html>

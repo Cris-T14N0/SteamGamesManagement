@@ -1,4 +1,5 @@
 <?php
+// Sending to Main
 // Database configuration (Hostinger)
 $host = "localhost";
 $user = "u506280443_crijuldbUser";
